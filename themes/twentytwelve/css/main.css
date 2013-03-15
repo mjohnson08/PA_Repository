@@ -1,0 +1,107 @@
+/* HTML Tag Redefinition */
+html, body {height: 100%;  }
+body {background-color: #fff; padding: 0px; margin: 0px; font-family: Georgia sans-serif;}
+img {border: 0px}
+a { cursor:pointer}
+
+fieldset { border:1px solid #ccc;}
+#page{width:70%; margin:auto; text-align:left; box-shadow: 0px 0px 9px rgba(0,0,0,0.15); border-radius: 10px; border: 0px 0.5px; }
+/* error text class optionally provided by theme */ 
+div.ccm-error-response {color: #f00; margin-bottom: 12px}
+
+
+#page #central{background:url(images/nav_sidebar_right_bg.gif) repeat-y center; clear:both; }
+#page .no-sidebar { background-image: none !important}
+#page #central.central-left { background:url(images/nav_sidebar_left_bg.gif) repeat-y center !important; }
+#page #central.central-left div#sidebar {float: left !important; }
+#page #central.central-left #body {padding-left: 68px !important; padding-right: 0px !important; float:right}
+ 
+#page #central #body{ float:left; width:67%; padding-right:28px; padding-left: 0px !important; padding-right: 0px !important }
+#page .no-sidebar #body{ float: none !important; width: auto !important; }
+#page #central #sidebar{ float:right; width:23%; overflow:hidden }
+#page #central #sidebar p{ line-height:24px}
+#page #central #sidebar ul.nav{ list-style:none; margin-left:0px; padding:0px; padding-left:24px; font-size:11px;}
+#page #central #sidebar ul.nav li{ margin-bottom:16px; }
+#page #central #sidebar ul.nav a{ text-decoration:none; color:#333 }
+#page #central #sidebar ul.nav a.nav-selected {font-weight: bold}
+#page #central #sidebar ul.nav a:hover{ text-decoration:underline }
+#page #central #sidebar ul.nav ul{ list-style:none; margin-left:0px; padding:0px; padding-left:16px; margin-top:16px; }
+#page #central #sidebar ul.nav ul li{ margin-bottom:16px; }
+
+#page #central.navLeft{ background:url(images/nav_sidebar_left_bg.gif) repeat-y center; }
+#page #central.navLeft  #sidebar{float:left}
+#page #central.navLeft  #body{float:right; padding-right:0px; width:68%; }
+
+#page #central.noSideNav{ background: none; }
+#page #central.noSideNav  #sidebar{ display:none }
+#page #central.noSideNav  #body{float: none; width:100%; }
+
+#page #footer{ padding-top:24px; clear:both; padding-bottom:16px; color:#999; font-size:10px }
+#page #footer a{ text-decoration:none }
+#page #footer span.sign-in {margin-left: 20px}
+#page #footer span.powered-by { float:right; }
+
+/* Page Elements */ 
+
+.pagingNav{ margin:0px 0px 0px 0px}
+.pagination{ text-align:center; color:#bbb; padding-top:4px}
+.pagination .pageRight{width:20%; float:right; text-align:right}
+.pagination .pageLeft{width:20%; float:left; text-align:left}
+
+/* MISC STYLES & SHORTCUTS*/ 
+div.code {border: 1px solid #ddd; background: #eee; padding: 10px}
+div.spacer,div.ccm-spacer{ clear:both; font-size:1px; line-height:1px }
+.noTopSpace{margin-top:0px; padding-top:0px}
+div.pageSection { margin-bottom: 10px; }
+
+/* customize_miscellaneous */ /* customize_miscellaneous */
+/*Top Banner*/
+header{width: 100%; box-shadow: 0px 0px 15px rgba(0,0,0,0.15); border-radius: 10px;}
+header img{background-color: #399200;  height: 125px; }
+
+/*Navigation Bar */
+nav{width: 100%; float: left;}
+nav ul ul {display: none;}	
+		
+nav ul li:hover > ul {display: block; border-radius: 10px;}
+
+nav ul {background: linear-gradient(top, #fff 0%, #EAEAEA 100%);  
+	background: -moz-linear-gradient(top, #fff 0%, #EAEAEA 100%); 
+	background: -webkit-linear-gradient(top, #fff 0%,#EAEAEA 100%); 
+	box-shadow: 0px 0px 9px rgba(0,0,0,0.15);
+	border-radius: 10px;
+	list-style: none;
+	font-size: 12px;
+	font-weight: bold;
+	position: relative;
+	width: 100%;
+	display: inline-table;}
+	
+nav ul:after {content: ""; clear: both; display: block;}
+nav ul li {float: left;}
+nav ul li:hover {position: relative; z-index: 100;}		
+nav ul li:hover a {color: #111; background: #fff;}	
+
+nav ul li a {display: block; 
+		color: #111; 
+		text-decoration: none;
+		padding: 15px 15px;
+		width: }
+	
+nav ul ul {background: #EAEAEA;  border-radius: 10px; padding: 0;
+	position: absolute; top: 100%;}
+		
+nav ul ul li {float: none; 
+		border-bottom: 1px solid #111;
+		border-radius: 10px;
+		position: relative;}
+
+nav ul ul li a {color: #f00;
+		padding: 10px 5px;
+		border-radius: 10px;
+		text-align: center;}
+		
+nav ul ul li a:hover {background: #EAEAEA; color: #111;text-align: center;}
+
+/*News Section beside pictures*/
+#WhatsNew{color: #000; background-color:#EAEAEA }

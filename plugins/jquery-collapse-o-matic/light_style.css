@@ -1,0 +1,27 @@
+.collapseomatic {
+	cursor: pointer;
+	color: #288800;
+	font-size: 12px;
+}
+
+.colomat-hover {
+	text-decoration: underline;
+}
+
+.collapseomatic_excerpt, .collapseomatic_content {
+	margin-top: 0px;
+	margin-left: 0px;
+	padding: 0px;
+}
+
+.collapseall, .expandall {
+	cursor: pointer;
+}
+.collapseall:hover, .expandall:hover {
+	text-decoration: underline;
+}
+.maptastic {
+    position: absolute !important;
+	left: -10000px !important;
+	display:block !important;
+}
