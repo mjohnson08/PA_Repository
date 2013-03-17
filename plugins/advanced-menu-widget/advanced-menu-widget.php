@@ -29,227 +29,89 @@ function selective_display($itemID, $children_elements, $strict_sub = false) {
 	
 }
 
-//the idea for this extented class is from here http://wordpress.stackexchange.com/questions/2802/display-a-only-a-portion-of-the-menu-tree-using-wp-nav-menu/2930#2930
-class Related_Sub_Items_Walker extends Walker_Nav_Menu
-{	
-	var $ancestors = array();
-	var	$selected_children = 0;
-	var $direct_path = 0;
-	var $include_parent = 0;
-	var	$start_depth = 0;
+class Selective_Walker extends Walker_Nav_Menu
+{
 
-	function display_element( $element, &$children_elements, $max_depth, $depth=0, $args, &$output ) {
-		
-		if ( !$element )
-			return;
-		
-		$id_field = $this->db_fields['id'];
+    function walk( $elements, $max_depth) {
 
-		//display this element
-		if ( is_array( $args[0] ) )
-			$args[0]['has_children'] = ! empty( $children_elements[$element->$id_field] );
-		$cb_args = array_merge( array(&$output, $element, $depth), $args);
-		if ( is_object( $args[0] ) ) {
-	        $args[0]->has_children = ! empty( $children_elements[$element->$id_field] );
-	    }    
+        $args = array_slice(func_get_args(), 2);
+        $output = '';
 
-		$display = ( isset($element->display) ) ? $element->display : 0;
+        if ($max_depth < -1) //invalid parameter
+            return $output;
 
-		if ( ( ($this->selected_children && $display) || !$this->selected_children ) && ( ($this->start_depth && $depth >= $this->start_depth) || !$this->start_depth ) ) {
-			if ( ($args[0]->only_related && ($element->menu_item_parent == 0 || (in_array($element->menu_item_parent, $this->ancestors) || $display)))
-				|| (!$args[0]->only_related && ($display || !$args[0]->filter_selection) ) )
-					call_user_func_array(array(&$this, 'start_el'), $cb_args);
-		}
+        if (empty($elements)) //nothing to walk
+            return $output;
 
-		$id = $element->$id_field;
-	    
-		// descend only when the depth is right and there are childrens for this element
-		if ( ($max_depth == 0 || $max_depth > $depth+1 ) && isset( $children_elements[$id]) ) {
-			
-			foreach( $children_elements[ $id ] as $child ){
+        $id_field = $this->db_fields['id'];
+        $parent_field = $this->db_fields['parent'];
 
-				$current_element_markers = array( 'current-menu-item', 'current-menu-parent', 'current-menu-ancestor', 'current_page_item' );
-							
-				$descend_test = array_intersect( $current_element_markers, $child->classes );
+        // flat display
+        if ( -1 == $max_depth ) {
+            $empty_array = array();
+            foreach ( $elements as $e )
+                $this->display_element( $e, $empty_array, 1, 0, $args, $output );
+            return $output;
+        }
 
-				if ( $args[0]->strict_sub || !in_array($child->menu_item_parent, $this->ancestors) && !$display )
-						$temp_children_elements = $children_elements;
-									
-				if ( !isset($newlevel) ) {
-					$newlevel = true;
-					//start the child delimiter
-					$cb_args = array_merge( array(&$output, $depth), $args);
+        /*
+         * need to display in hierarchical order
+         * separate elements into two buckets: top level and children elements
+         * children_elements is two dimensional array, eg.
+         * children_elements[10][] contains all sub-elements whose parent is 10.
+         */
+        $top_level_elements = array();
+        $children_elements  = array();
+        foreach ( $elements as $e) {
+            if ( 0 == $e->$parent_field )
+                $top_level_elements[] = $e;
+            else
+                $children_elements[ $e->$parent_field ][] = $e;
+        }
 
-					if ( ( ($this->selected_children && $display) || !$this->selected_children ) && ( ($this->start_depth && $depth >= $this->start_depth) || !$this->start_depth ) ) {	
-						if ( ($args[0]->only_related && ($element->menu_item_parent == 0 || (in_array($element->menu_item_parent, $this->ancestors) || $display)))
-							|| (!$args[0]->only_related && ($display || !$args[0]->filter_selection) ) )
-									call_user_func_array(array(&$this, 'start_lvl'), $cb_args);
-					}
-				}												
+        /*
+         * when none of the elements is top level
+         * assume the first one must be root of the sub elements
+         */
+        if ( empty($top_level_elements) ) {
 
-				if ( $args[0]->only_related && !$args[0]->filter_selection && ( !in_array($child->menu_item_parent, $this->ancestors) && !$display && !$this->direct_path )
-					|| ( $args[0]->strict_sub && empty( $descend_test ) && !$this->direct_path ) )
-							unset ( $children_elements );		
+            $first = array_slice( $elements, 0, 1 );
+            $root = $first[0];
 
-				if ( ( $this->direct_path && !empty( $descend_test ) ) || !$this->direct_path ) {	
-					$this->display_element( $child, $children_elements, $max_depth, $depth + 1, $args, $output );
-				}
+            $top_level_elements = array();
+            $children_elements  = array();
+            foreach ( $elements as $e) {
+                if ( $root->$parent_field == $e->$parent_field )
+                    $top_level_elements[] = $e;
+                else
+                    $children_elements[ $e->$parent_field ][] = $e;
+            }
+        }
 
-				if ($args[0]->strict_sub || !in_array($child->menu_item_parent, $this->ancestors) && !$display)
-						$children_elements = $temp_children_elements;				
-			}
-			unset( $children_elements[ $id ] );
-		}
+        $current_element_markers = array( 'current-menu-item', 'current-menu-parent', 'current-menu-ancestor' );
 
-		if ( isset($newlevel) && $newlevel ){
-			//end the child delimiter
-			$cb_args = array_merge( array(&$output, $depth), $args);
-			if ( ( ($this->selected_children && $display) || !$this->selected_children ) && ( ($this->start_depth && $depth >= $this->start_depth) || !$this->start_depth ) ) {	
-				if ( ($args[0]->only_related && ($element->menu_item_parent == 0 || (in_array($element->menu_item_parent, $this->ancestors) || $display)))
-					|| (!$args[0]->only_related && ($display || !$args[0]->filter_selection) ) )
-							call_user_func_array(array(&$this, 'end_lvl'), $cb_args);
-			}
-		}
+        foreach ( $top_level_elements as $e ) {
 
-		//end this element
-		$cb_args = array_merge( array(&$output, $element, $depth), $args);
-		if ( ( ($this->selected_children && $display) || !$this->selected_children ) && ( ($this->start_depth && $depth >= $this->start_depth) || !$this->start_depth ) ) {
-			if ( ($args[0]->only_related && ($element->menu_item_parent == 0 || (in_array($element->menu_item_parent, $this->ancestors) || $display)))
-				|| (!$args[0]->only_related && ($display || !$args[0]->filter_selection) ) )
-						call_user_func_array(array(&$this, 'end_el'), $cb_args);
-		}
-	}
-	
-	function walk( $elements, $max_depth) {
+            // descend only on current tree
+            $descend_test = array_intersect( $current_element_markers, $e->classes );
+            if ( empty( $descend_test ) )  unset ( $children_elements );
 
-		$args = array_slice(func_get_args(), 2);
+            $this->display_element( $e, $children_elements, $max_depth, 0, $args, $output );
+        }
 
-		if ( ! empty($args[0]->include_parent) )
-			$this->include_parent = 1;
+        /*
+         * if we are displaying all levels, and remaining children_elements is not empty,
+         * then we got orphans, which should be displayed regardless
+         */
+        if ( ( $max_depth == 0 ) && count( $children_elements ) > 0 ) {
+            $empty_array = array();
+            foreach ( $children_elements as $orphans )
+                foreach( $orphans as $op )
+                    $this->display_element( $op, $empty_array, 1, 0, $args, $output );
+         }
 
-		if ( ! empty($args[0]->start_depth) )
-			$this->start_depth = $args[0]->start_depth;
-
-		if ( $args[0]->filter == 1 )
-			$this->direct_path = 1;
-		elseif ( $args[0]->filter == 2 )
-			$this->selected_children = 1;
-
-		$output = '';
-
-		if ($max_depth < -1) //invalid parameter
-			return $output;
-
-		if (empty($elements)) //nothing to walk
-			return $output;
-
-		$id_field = $this->db_fields['id'];
-		$parent_field = $this->db_fields['parent'];
-		
-		// flat display
-		if ( -1 == $max_depth ) {
-			$empty_array = array();
-			foreach ( $elements as $e )
-				$this->display_element( $e, $empty_array, 1, 0, $args, $output );
-			return $output;
-		}
-
-		/*
-		 * need to display in hierarchical order
-		 * separate elements into two buckets: top level and children elements
-		 * children_elements is two dimensional array, eg.
-		 * children_elements[10][] contains all sub-elements whose parent is 10.
-		 */
-		$top_level_elements = array();
-		$children_elements  = array();
-		foreach ( $elements as $e) {
-			if ( 0 == $e->$parent_field )
-				$top_level_elements[] = $e;
-			else
-				$children_elements[ $e->$parent_field ][] = $e;
-		}
-
-		/*
-		 * when none of the elements is top level
-		 * assume the first one must be root of the sub elements
-		 */
-		if ( empty($top_level_elements) ) {
-
-			$first = array_slice( $elements, 0, 1 );
-			$root = $first[0];
-
-			$top_level_elements = array();
-			$children_elements  = array();
-			foreach ( $elements as $e) {
-				if ( $root->$parent_field == $e->$parent_field )
-					$top_level_elements[] = $e;
-				else
-					$children_elements[ $e->$parent_field ][] = $e;
-			}
-		}
-
-		if ( $args[0]->only_related || $this->include_parent || $this->selected_children ) {
-			foreach ( $elements as &$el ) {
-				if ( $this->selected_children )
-				{
-					if ( in_array('current-menu-item',$el->classes) )
-							$args[0]->filter_selection = $el->ID;
-							
-				}
-				elseif ( $args[0]->only_related ) 
-				{
-					if ( in_array('current-menu-item',$el->classes) ) {
-						$el->display = 1;
-						selective_display($el->ID, $children_elements);
-						
-						$ancestors = array();
-						$menu_parent = $el->menu_item_parent;
-			      		while ( $menu_parent && ! in_array( $menu_parent, $ancestors ) ) {
-			                    $ancestors[] = (int) $menu_parent;
-			                    $temp_menu_paret = get_post_meta($menu_parent, '_menu_item_menu_item_parent', true);
-			                    $menu_parent = $temp_menu_paret;
-			            }
-			            $this->ancestors = $ancestors;
-					}
-				}
-				if ( $this->include_parent ) {				
-					if ( $el->ID == $args[0]->filter_selection )
-							$el->display = 1;	
-				}
-
-			}
-		}	
-		
-		$strict_sub_arg = ( $args[0]->strict_sub ) ? 1 : 0;
-		if ( $args[0]->filter_selection || $this->selected_children )
-				$top_parent = selective_display($args[0]->filter_selection, $children_elements, $strict_sub_arg);			
-		
-		$current_element_markers = array( 'current-menu-item', 'current-menu-parent', 'current-menu-ancestor', 'current_page_item' );
-        
-		foreach ( $top_level_elements as $e ) {				
-			
-			if ( $args[0]->only_related ) {
-
-				$temp_children_elements = $children_elements;
-				
-				// descend only on current tree
-				$descend_test = array_intersect( $current_element_markers, $e->classes );
-				if ( empty( $descend_test ) && !$this->direct_path )  
-					unset ( $children_elements );
-
-				if ( ( $this->direct_path && !empty( $descend_test ) ) || ( !$this->direct_path ) ) {	
-					$this->display_element( $e, $children_elements, $max_depth, 0, $args, $output );
-				}
-
-				$children_elements = $temp_children_elements;
-
-			} elseif ( (! empty ($top_parent) && $top_parent == $e->ID ) || empty($top_parent) ) {
-				$this->display_element( $e, $children_elements, $max_depth, 0, $args, $output );
-			}
-		}
-
-		return $output;
-	}
+         return $output;
+    }
 
 }
 
@@ -265,7 +127,7 @@ class Related_Sub_Items_Walker extends Walker_Nav_Menu
 
 	function widget($args, $instance) {
 		
-		$only_related_walker = ( $instance['only_related'] == 2 || $instance['only_related'] == 3 || 1 == 1 )? new Related_Sub_Items_Walker : new Walker_Nav_Menu;
+		$only_related_walker = ( $instance['only_related'] == 2 || $instance['only_related'] == 3 || 1 == 1 )? new Selective_Walker : new Walker_Nav_Menu;
 		$strict_sub = $instance['only_related'] == 3 ? 1 : 0;
 		$only_related = $instance['only_related'] == 2 || $instance['only_related'] == 3 ? 1 : 0;
 		$depth = $instance['depth'] ? $instance['depth'] : 0;		
