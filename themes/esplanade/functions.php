@@ -349,7 +349,7 @@ function esplanade_default_options() {
 		'headings_color' => '#333',
 		'content_color' => '#333',
 		'links_color' => '#21759b',
-		'links_hover_color' => '#d54e21',
+		'links_hover_color' => '#01D1DB',
 		'menu_color' => '#f0f0f0',
 		'menu_hover_color' => '#fff',
 		'sidebar_color' => '#aaa',

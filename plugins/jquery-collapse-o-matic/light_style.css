@@ -1,7 +1,12 @@
 .collapseomatic {
 	cursor: pointer;
-	color: #288800;
+	color: #00908A;
 	font-size: 12px;
+}
+
+.collapseomatic#main,  #main2, #main3, #main4, #main5{
+	color: #452B83;
+	font-size: 16px;
 }
 
 .colomat-hover {
